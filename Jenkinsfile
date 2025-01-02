@@ -78,12 +78,10 @@
 pipeline {
     agent any
     tools {
-        maven 'sonarmaven' // Define Maven tool name from Jenkins tool configuration
+        maven 'M3' // Define Maven tool name from Jenkins tool configuration
     }
     environment {
-        SONARQUBE = 'SonarQube Scanner' // Set your SonarQube server name from Jenkins configuration
-        JAVA_HOME = 'C:\\Program Files\\Java\\jdk-17'
-        PATH = "${JAVA_HOME}\\bin;${env.PATH}"
+        SONARQUBE = 'SonarQube Analysis' // Set your SonarQube server name from Jenkins configuration
     }
     stages {
         stage('Checkout') {
@@ -97,19 +95,25 @@ pipeline {
                     // Run the Maven build with test execution
                     bat '''
                     mvn clean verify sonar:sonar \
-  -Dsonar.projectKey=maven1 \
-  -Dsonar.projectName='maven1' \
-  -Dsonar.host.url=http://localhost:9000 \
-  -Dsonar.token=sqp_0e25c2f83ba63c760fd57e1caab96649160b04ed
+                  -Dsonar.projectKey=maven1 \
+                  -Dsonar.projectName='maven1' \
+                  -Dsonar.host.url=http://localhost:9000 \
+                  -Dsonar.token=sqp_0e25c2f83ba63c760fd57e1caab96649160b04ed
                     '''
                 }
             }
         }
-        stage('Code Coverage') {
+        stage('Test Reports') {
+            steps {
+                // Publish test results using JUnit
+                junit '**/target/test-classes/*.xml' // Path to the test report
+            }
+        }
+        stage('SonarQube Analysis') {
             steps {
                 script {
-                    // Run the JaCoCo code coverage analysis
-                    bat 'mvn jacoco:report'
+                    // Trigger SonarQube analysis using the SonarQube Scanner plugin
+                    bat 'mvn sonar:sonar -Dsonar.host.url=http://your-sonarqube-server:9000 -Dsonar.login=sqa_9619c288c8a09e5c2349a8a492590339a3f61184'
                 }
             }
         }
