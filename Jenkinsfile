@@ -106,11 +106,12 @@ pipeline {
             }
         }
         stage('Test Reports') {
-            steps {
-                // Publish test results using JUnit
-                junit '**/target/test-classes/*.xml' // Path to the test report
-            }
-        }
+    steps {
+        // Publish test results using JUnit
+        junit '**/target/surefire-reports/*.xml' // Correct path to test report files
+    }
+}
+
         stage('SonarQube Analysis') {
             steps {
                 script {
