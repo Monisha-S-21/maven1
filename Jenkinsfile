@@ -19,7 +19,7 @@ pipeline {
         }
         stage('Build') {
             steps {
-                bat 'mvn clean compile'
+                bat 'mvn clean compile dependency:resolve'
             }
         }
         
