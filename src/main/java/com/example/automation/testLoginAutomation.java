@@ -8,7 +8,7 @@ import org.openqa.selenium.chrome.ChromeDriver;
 
 // import static org.junit.jupiter.api.Assertions.assertEquals;
 
-public class LoginAutomationTest {
+public class testLoginAutomation {
     // @Test
     public void testLogin() {
         // Set up the WebDriver
