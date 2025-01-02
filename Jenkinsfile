@@ -1,75 +1,125 @@
+// pipeline {
+//     agent any
+
+//     tools {
+//         maven 'sonarmaven'
+//     }
+
+//     environment {
+//         SONAR_TOKEN = credentials('maven') 
+//         JAVA_HOME = 'C:\\Program Files\\Java\\jdk-17'
+//         PATH = "${JAVA_HOME}\\bin;${env.PATH}"
+//     }
+
+//     stages {
+//         stage('Checkout') {
+//             steps {
+//                 checkout scm
+//             }
+//         }
+
+//         stage('Dependency Update') {
+//     steps {
+//         bat 'mvn clean install -U'
+//     }
+// }
+//         stage('Build') {
+//             steps {
+//                 bat 'mvn clean compile dependency:resolve'
+//             }
+//         }
+        
+//         stage('Test') {
+//             steps {
+//                 bat 'mvn test'
+//             }
+//         }  
+       
+      
+//         stage('Package') {
+//             steps {
+//                 bat 'mvn package'
+//             }
+//         }
+
+//         stage('Deploy') {
+//             steps {
+//                 echo 'Deploying the application...'
+//             }
+//         }
+
+        
+        
+//       stage('SonarQube Analysis') {
+//             steps {
+//                 withSonarQubeEnv('sonarqube') {
+//                     bat """
+//                         mvn clean verify sonar:sonar \
+//                         -Dsonar.projectKey=maven \
+//                         -Dsonar.projectName='maven' \
+//                         -Dsonar.host.url=http://localhost:9000 \
+//                         -Dsonar.token=sqp_d81ac1dfd0023a1300c8465363e5179bab347d76
+//                     """
+//                 }
+//             }
+//         }
+//     }
+//   post {
+//         success {
+//             echo 'Pipeline completed successfully.'
+//         }
+//         failure {
+//             echo 'Pipeline failed.'
+//         }
+//     }
+// }
+
+
 pipeline {
     agent any
-
     tools {
-        maven 'sonarmaven'
+        maven 'sonarmaven' // Define Maven tool name from Jenkins tool configuration
     }
-
     environment {
-        SONAR_TOKEN = credentials('maven') 
-        JAVA_HOME = 'C:\\Program Files\\Java\\jdk-17'
-        PATH = "${JAVA_HOME}\\bin;${env.PATH}"
+        SONARQUBE = 'SonarQube Scanner' // Set your SonarQube server name from Jenkins configuration
     }
-
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-
-        stage('Dependency Update') {
-    steps {
-        bat 'mvn clean install -U'
-    }
-}
-        stage('Build') {
+        stage('Build and Test') {
             steps {
-                bat 'mvn clean compile dependency:resolve'
+                script {
+                    // Run the Maven build with test execution
+                    bat '''
+                    mvn clean verify sonar:sonar \
+  -Dsonar.projectKey=maven1 \
+  -Dsonar.projectName='maven1' \
+  -Dsonar.host.url=http://localhost:9000 \
+  -Dsonar.token=sqp_0e25c2f83ba63c760fd57e1caab96649160b04ed
+                    '''
+                }
             }
         }
-        
-        stage('Test') {
+        stage('Code Coverage') {
             steps {
-                bat 'mvn test'
-            }
-        }  
-       
-      
-        stage('Package') {
-            steps {
-                bat 'mvn package'
-            }
-        }
-
-        stage('Deploy') {
-            steps {
-                echo 'Deploying the application...'
-            }
-        }
-
-        
-        
-      stage('SonarQube Analysis') {
-            steps {
-                withSonarQubeEnv('sonarqube') {
-                    bat """
-                        mvn clean verify sonar:sonar \
-                        -Dsonar.projectKey=maven \
-                        -Dsonar.projectName='maven' \
-                        -Dsonar.host.url=http://localhost:9000 \
-                        -Dsonar.token=sqp_d81ac1dfd0023a1300c8465363e5179bab347d76
-                    """
+                script {
+                    // Run the JaCoCo code coverage analysis
+                    bat 'mvn jacoco:report'
                 }
             }
         }
     }
-  post {
+    post {
         success {
-            echo 'Pipeline completed successfully.'
+            // Actions after a successful build
+            echo 'Build and tests were successful!'
         }
         failure {
-            echo 'Pipeline failed.'
+            // Actions on build failure
+            echo 'Build or tests failed.'
         }
     }
 }
