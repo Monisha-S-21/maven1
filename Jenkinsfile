@@ -78,7 +78,7 @@
 pipeline {
     agent any
     tools {
-        maven 'M3' // Define Maven tool name from Jenkins tool configuration
+        maven 'sonarmaven' // Define Maven tool name from Jenkins tool configuration
     }
     environment {
         SONARQUBE = 'SonarQube Analysis' // Set your SonarQube server name from Jenkins configuration
