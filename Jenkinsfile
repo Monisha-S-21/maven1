@@ -18,22 +18,22 @@ pipeline {
             }
         }
 
-        stage('Dependency Update') {
-    steps {
-        bat 'mvn clean install -U'
-    }
-}
-        stage('Build') {
-            steps {
-                bat 'mvn clean compile dependency:resolve'
-            }
-        }
+//         stage('Dependency Update') {
+//     steps {
+//         bat 'mvn clean install -U'
+//     }
+// }
+//         stage('Build') {
+//             steps {
+//                 bat 'mvn clean compile dependency:resolve'
+//             }
+//         }
         
-        stage('Test') {
-            steps {
-                bat 'mvn test'
-            }
-        }  
+//         stage('Test') {
+//             steps {
+//                 bat 'mvn test'
+//             }
+//         }  
        
       
         stage('Package') {
