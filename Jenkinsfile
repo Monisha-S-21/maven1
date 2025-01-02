@@ -17,6 +17,12 @@ pipeline {
                 checkout scm
             }
         }
+
+        stage('Dependency Update') {
+    steps {
+        bat 'mvn clean install -U'
+    }
+}
         stage('Build') {
             steps {
                 bat 'mvn clean compile dependency:resolve'
