@@ -77,64 +77,70 @@
 
 pipeline {
     agent any
+
     tools {
-        maven 'sonarmaven' // Define Maven tool name from Jenkins tool configuration
+        maven 'sonarmaven' // Ensure this matches the Maven configuration in Jenkins
     }
 
-    dependencies {
-    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
-    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
-}
-            
     environment {
-        SONARQUBE = 'SonarQube Analysis' // Set your SonarQube server name from Jenkins configuration
-        JAVA_HOME = 'C:\\Program Files\\Java\\jdk-17'
-        PATH = "${JAVA_HOME}\\bin;${env.PATH}"
+        // SONAR_TOKEN = credentials('Sonarqube-token') // Replace with your SonarQube token credentials ID
     }
+
     stages {
+        // Stage 1: Checkout
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
+
+        // Stage 2: Build and Test
         stage('Build and Test') {
             steps {
-                script {
-                    // Run the Maven build with test execution
-                    bat '''
-                    mvn clean verify sonar:sonar \
-                  -Dsonar.projectKey=maven1 \
-                  -Dsonar.projectName='maven1' \
-                  -Dsonar.host.url=http://localhost:9000 \
-                  -Dsonar.token=sqp_0e25c2f83ba63c760fd57e1caab96649160b04ed
-                    '''
-                }
+                bat 'mvn clean verify' // Cleans, builds, runs tests, and generates reports
             }
         }
-        stage('Test Reports') {
-    steps {
-        // Publish test results using JUnit
-        junit '**/target/surefire-reports/*.xml' // Correct path to test report files
-    }
-}
 
+        // Stage 3: SonarQube Analysis
         stage('SonarQube Analysis') {
             steps {
-                script {
-                    // Trigger SonarQube analysis using the SonarQube Scanner plugin
-                    bat 'mvn sonar:sonar -Dsonar.host.url=http://your-sonarqube-server:9000 -Dsonar.login=sqa_9619c288c8a09e5c2349a8a492590339a3f61184'
+                withSonarQubeEnv('sonarqube') { // Replace 'sonarqube' with your SonarQube server configuration name
+                    bat """
+                        mvn sonar:sonar ^
+                        -Dsonar.projectKey=sonarmaven3 ^
+                        -Dsonar.sources=src/main/java ^
+                        -Dsonar.tests=src/test/java ^
+                        -Dsonar.junit.reportPaths=target/surefire-reports ^
+                        -Dsonar.jacoco.reportPaths=target/site/jacoco/jacoco.xml ^
+                        -Dsonar.pmd.reportPaths=target/pmd-duplicates.xml ^
+                        -Dsonar.host.url=http://localhost:9000 ^
+                        -Dsonar.login=sqp_5096e5dd26ef937b0da0b366c14e05ecf59a855b
+                    """
+                }
+            }
+        }
+
+        // Stage 4: Quality Gate Check
+        stage('Quality Gate') {
+            steps {
+                timeout(time: 1, unit: 'MINUTES') { // Wait for 1 minute for SonarQube quality gate result
+                    script {
+                        def qg = waitForQualityGate()
+                        if (qg.status != 'OK') {
+                            error "Pipeline failed due to quality gate failure: ${qg.status}"
+                        }
+                    }
                 }
             }
         }
     }
+
     post {
         success {
-            // Actions after a successful build
-            echo 'Build and tests were successful!'
+            echo 'Pipeline completed successfully.'
         }
         failure {
-            // Actions on build failure
-            echo 'Build or tests failed.'
+            echo 'Pipeline failed.'
         }
     }
 }
