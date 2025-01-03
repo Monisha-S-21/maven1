@@ -80,6 +80,12 @@ pipeline {
     tools {
         maven 'sonarmaven' // Define Maven tool name from Jenkins tool configuration
     }
+
+    dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.0'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.0'
+}
+            
     environment {
         SONARQUBE = 'SonarQube Analysis' // Set your SonarQube server name from Jenkins configuration
         JAVA_HOME = 'C:\\Program Files\\Java\\jdk-17'
